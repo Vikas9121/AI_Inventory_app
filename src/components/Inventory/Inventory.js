@@ -1,199 +1,163 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Paper,
-  Button,
-  TextField,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent
-} from '@mui/material';
-import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
-import { inventoryApi, scanditApi } from '../../services/api';
-import { wsService } from '../../services/websocket';
+import { fetchProducts, addProduct, updateStock } from '../../services/api';
+import BarcodeScanner from '../BarcodeScanner/BarcodeScanner';
 import './Inventory.css';
 
-const Inventory = () => {
+function Inventory() {
+  const [searchTerm, setSearchTerm] = useState('');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [scannerOpen, setScannerOpen] = useState(false);
+  const [error, setError] = useState(null);
   const [newProduct, setNewProduct] = useState({
     name: '',
     quantity: '',
     price: ''
   });
 
-  const fetchProducts = React.useCallback(async () => {
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
     try {
-      const data = await inventoryApi.getProducts();
-      setProducts(data.items || []);
+      setLoading(true);
+      setError(null); // Clear any previous errors
+      console.log('Starting to fetch products...'); // Debug log
+      const data = await fetchProducts();
+      console.log('Fetched products:', data); // Debug log
+      setProducts(data);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('Load products error:', error);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    // Initial fetch
-    fetchProducts();
-
-    // Subscribe to WebSocket updates
-    wsService.connect();
-    const unsubscribe = wsService.subscribe((data) => {
-      if (data.type === 'STOCK_UPDATE') {
-        setProducts(currentProducts => 
-          currentProducts.map(product => 
-            product.id === data.productId 
-              ? { ...product, quantity: data.newQuantity }
-              : product
-          )
-        );
-      }
-    });
-
-    return () => unsubscribe();
-  }, [fetchProducts]);
-
-  const handleScan = React.useCallback(async () => {
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
     try {
-      const scanner = await scanditApi.initializeScanner();
-      await scanner.createContextFromHtmlElement('scanner-container');
-      
-      scanner.on('scan', async (scanResult) => {
-        console.log('Scanned:', scanResult.barcodeData);
-        await fetchProducts();
-        setScannerOpen(false);
+      await addProduct({
+        name: newProduct.name,
+        quantity: parseInt(newProduct.quantity),
+        price: parseFloat(newProduct.price)
       });
-
-      await scanner.show();
-    } catch (error) {
-      console.error('Scanning error:', error);
-    }
-  }, [fetchProducts]);
-
-  useEffect(() => {
-    if (scannerOpen) {
-      handleScan();
-    }
-  }, [scannerOpen, handleScan]);
-
-  const handleAddProduct = () => {
-    if (newProduct.name && newProduct.quantity && newProduct.price) {
-      setProducts([
-        ...products,
-        {
-          id: products.length + 1,
-          ...newProduct,
-          quantity: parseInt(newProduct.quantity),
-          price: parseFloat(newProduct.price)
-        }
-      ]);
       setNewProduct({ name: '', quantity: '', price: '' });
+      loadProducts(); // Refresh the list
+    } catch (error) {
+      setError('Error adding product: ' + error.message);
     }
   };
 
-  // Add a visual indicator for stock changes
-  const StockCell = ({ value, productId }) => {
-    const [highlight, setHighlight] = useState(false);
-    
-    useEffect(() => {
-      setHighlight(true);
-      const timer = setTimeout(() => setHighlight(false), 2000);
-      return () => clearTimeout(timer);
-    }, [value]);
-
-    return (
-      <TableCell 
-        style={{
-          backgroundColor: highlight ? '#fff3cd' : 'transparent',
-          transition: 'background-color 0.5s'
-        }}
-      >
-        {value}
-      </TableCell>
-    );
+  const handleUpdateStock = async (productId, newQuantity) => {
+    try {
+      await updateStock(productId, parseInt(newQuantity));
+      loadProducts(); // Refresh the list
+    } catch (error) {
+      setError('Error updating stock: ' + error.message);
+    }
   };
 
-  return (
-    <div data-testid="inventory" className="inventory-container">
-      <div className="inventory-header">
-        <h2>Inventory Management</h2>
-        <IconButton onClick={() => setScannerOpen(true)}>
-          <QrCodeScannerIcon />
-        </IconButton>
-      </div>
+  const handleBarcodeScan = (barcodeData) => {
+    console.log('Scanned barcode:', barcodeData);
+  };
 
-      {/* Scanner Dialog */}
-      <Dialog open={scannerOpen} onClose={() => setScannerOpen(false)}>
-        <DialogTitle>Scan Barcode/QR Code</DialogTitle>
-        <DialogContent>
-          <div id="scanner-container"></div>
-        </DialogContent>
-      </Dialog>
-
-      <div className="add-product-form">
-        <TextField
-          label="Product Name"
-          value={newProduct.name}
-          onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-          margin="normal"
-        />
-        <TextField
-          label="Quantity"
-          type="number"
-          value={newProduct.quantity}
-          onChange={(e) => setNewProduct({...newProduct, quantity: e.target.value})}
-          margin="normal"
-        />
-        <TextField
-          label="Price"
-          type="number"
-          value={newProduct.price}
-          onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
-          margin="normal"
-        />
-        <Button variant="contained" color="primary" onClick={handleAddProduct}>
-          Add Product
-        </Button>
-      </div>
-
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Quantity</TableCell>
-                <TableCell>Price ($)</TableCell>
-                <TableCell>Total Value ($)</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {products.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell>{product.id}</TableCell>
-                  <TableCell>{product.name}</TableCell>
-                  <StockCell value={product.quantity} productId={product.id} />
-                  <TableCell>{product.price.toFixed(2)}</TableCell>
-                  <TableCell>{(product.quantity * product.price).toFixed(2)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+  if (loading) return <div className="loading">Loading products...</div>;
+  if (error) return (
+    <div className="error">
+      <h3>Error Loading Products</h3>
+      <p>{error}</p>
+      <button className="button" onClick={loadProducts}>Retry</button>
     </div>
   );
-};
+
+  return (
+    <div className="inventory">
+      <div className="page-header">
+        <h1>Inventory</h1>
+        <div className="search-bar">
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <h2>Add New Product</h2>
+        </div>
+        <form onSubmit={handleAddProduct} className="product-form">
+          <div className="form-group">
+            <label>Product Name</label>
+            <input
+              type="text"
+              value={newProduct.name}
+              onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+              placeholder="Enter product name"
+            />
+          </div>
+          <div className="form-group">
+            <label>Quantity</label>
+            <input
+              type="number"
+              value={newProduct.quantity}
+              onChange={(e) => setNewProduct({...newProduct, quantity: e.target.value})}
+              placeholder="Enter quantity"
+            />
+          </div>
+          <div className="form-group">
+            <label>Price</label>
+            <input
+              type="number"
+              step="0.01"
+              value={newProduct.price}
+              onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
+              placeholder="Enter price"
+            />
+          </div>
+          <button type="submit" className="button">Add Product</button>
+        </form>
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <h2>Scan Product</h2>
+        </div>
+        <BarcodeScanner onScan={handleBarcodeScan} />
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <h2>Product List</h2>
+        </div>
+        <div className="products-grid">
+          {products.length === 0 ? (
+            <p className="empty-state">No products found</p>
+          ) : (
+            products.map(product => (
+              <div key={product.product_id} className="product-card">
+                <h3>{product.name}</h3>
+                <div className="product-details">
+                  <span>Quantity: {product.quantity}</span>
+                  <span>Price: ${product.price}</span>
+                </div>
+                <div className="stock-control">
+                  <input
+                    type="number"
+                    placeholder="New Quantity"
+                    onChange={(e) => handleUpdateStock(product.product_id, e.target.value)}
+                  />
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default Inventory; 

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as ScanditSDK from 'scandit-sdk';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5001/api';
 const SCANDIT_LICENSE_KEY = process.env.REACT_APP_SCANDIT_LICENSE_KEY;
 // const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 

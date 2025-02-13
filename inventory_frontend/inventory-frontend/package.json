@@ -1,19 +1,23 @@
 {
   "name": "inventory-frontend",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@babel/traverse": "^7.26.8",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-    "@mui/icons-material": "^5.15.6",
-    "@mui/material": "^5.15.6",
-    "axios": "^1.6.5",
-    "chart.js": "^4.4.1",
-    "react": "^18.2.0",
-    "react-chartjs-2": "^5.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.29.0",
-    "react-scripts": "^5.0.1"
+    "@mui/material": "^6.4.4",
+    "axios": "^1.7.9",
+    "chart.js": "^4.4.7",
+    "cra-template": "1.2.0",
+    "follow-redirects": "^1.15.9",
+    "postcss": "^8.5.2",
+    "react": "^19.0.0",
+    "react-chartjs-2": "^5.3.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.1.5",
+    "react-scripts": "^5.0.1",
+    "word-wrap": "^1.2.5"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -27,11 +31,6 @@
       "react-app/jest"
     ]
   },
-  "devDependencies": {
-    "@testing-library/jest-dom": "^6.1.6",
-    "@testing-library/react": "^14.1.2",
-    "@testing-library/user-event": "^14.5.2"
-  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -43,5 +42,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

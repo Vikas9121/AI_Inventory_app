@@ -27,3 +27,9 @@ yarn-error.log*
 !.elasticbeanstalk/*.global.yml
 !backend/.elasticbeanstalk/*.config.yml
 !backend/.elasticbeanstalk/*.global.yml
+
+# Add these lines
+backend/__pycache__/
+backend/*.pyc
+backend/inventory.db
+backend/.elasticbeanstalk/logs/

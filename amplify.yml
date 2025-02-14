@@ -8,8 +8,7 @@ frontend:
         - npm install
     build:
       commands:
-        - echo "REACT_APP_API_URL=$REACT_APP_API_URL" >> .env
-        - echo "REACT_APP_SCANDIT_LICENSE_KEY=$REACT_APP_SCANDIT_LICENSE_KEY" >> .env
+        - cp .env.production .env
         - npm run build
   artifacts:
     baseDirectory: build

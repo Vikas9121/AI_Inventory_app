@@ -21,7 +21,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "CI=false GENERATE_SOURCEMAP=false react-scripts build",
+    "build": "GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -43,7 +43,8 @@
       "last 1 safari version"
     ]
   },
-  "overrides": {
-    "typescript": "4.9.5"
+  "resolutions": {
+    "typescript": "4.9.5",
+    "@types/react": "^18.0.0"
   }
 }

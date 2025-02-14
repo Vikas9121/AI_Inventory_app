@@ -3,12 +3,13 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm install
+        - npm install --legacy-peer-deps
     build:
       commands:
         - echo "REACT_APP_API_URL=$REACT_APP_API_URL" >> .env
         - echo "NODE_ENV=production" >> .env
         - echo "CI=false" >> .env
+        - echo "REACT_APP_SCANDIT_LICENSE_KEY=$REACT_APP_SCANDIT_LICENSE_KEY" >> .env
         - npm run build
   artifacts:
     baseDirectory: build

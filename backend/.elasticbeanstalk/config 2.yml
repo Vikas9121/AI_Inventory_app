@@ -1,9 +1,15 @@
 branch-defaults:
   main:
-    environment: ai-inventory-app-env
+    environment: inventory-system-env
     group_suffix: null
+  master:
+    environment: inventory-system-env
+environment-defaults:
+  inventory-system-env:
+    branch: null
+    repository: null
 global:
-  application_name: ai-inventory-app
+  application_name: inventory-system
   branch: null
   default_ec2_keyname: null
   default_platform: Python 3.11 running on 64bit Amazon Linux 2023

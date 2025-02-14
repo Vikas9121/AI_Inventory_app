@@ -6,7 +6,9 @@ frontend:
         - npm install
     build:
       commands:
-        - cp .env.production .env
+        - echo "REACT_APP_API_URL=$REACT_APP_API_URL" >> .env
+        - echo "NODE_ENV=production" >> .env
+        - echo "CI=false" >> .env
         - npm run build
   artifacts:
     baseDirectory: build

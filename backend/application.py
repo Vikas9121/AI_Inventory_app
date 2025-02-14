@@ -27,10 +27,11 @@ CORS(application, resources={
     r"/*": {
         "origins": [
             "http://localhost:3000",
-            "https://main.xxx.amplifyapp.com"  # Update with your Amplify URL
+            "https://main.d334b39rffilc2.amplifyapp.com",  # Add your Amplify URL
+            "https://*.amplifyapp.com"  # Allow all Amplify subdomains
         ],
         "methods": ["GET", "POST", "PUT", "DELETE"],
-        "allow_headers": ["Content-Type", "Accept"]
+        "allow_headers": ["Content-Type", "Authorization"]
     }
 })
 
